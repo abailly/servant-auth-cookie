@@ -48,15 +48,15 @@ data LoginForm = LoginForm
   , lfPassword :: String
   } deriving (Eq, Show)
 
-instance FromFormUrlEncoded LoginForm where
-  fromFormUrlEncoded d = do
+instance FromForm LoginForm where
+  fromForm d = do
     username <- case lookup "username" d of
       Nothing -> Left "username field is missing"
       Just  x -> return (T.unpack x)
     password <- case lookup "password" d of
       Nothing -> Left "password field is missing"
       Just  x -> return (T.unpack x)
-    return LoginForm
+    return $ Right $ LoginForm
       { lfUsername = username
       , lfPassword = password }
 
@@ -73,7 +73,7 @@ userLookup username password db = accUid <$> find f db
 type ExampleAPI =
        Get '[HTML] Markup
   :<|> "login" :> Get '[HTML] Markup
-  :<|> "login" :> ReqBody '[FormUrlEncoded] LoginForm
+  :<|> "login" :> ReqBody '[Form] LoginForm
        :> Post '[HTML] (Headers '[Header "set-cookie" ByteString] Markup)
   :<|> "private" :> AuthProtect "cookie-auth" :> Get '[HTML] Markup
 
